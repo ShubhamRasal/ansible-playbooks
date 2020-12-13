@@ -1,0 +1,58 @@
+- hosts: docker
+  vars:
+   - project_name: "dev-creatorsbyheart"  
+   - source_code_dir: "/root/Desktop/playbook_dir/mywebsite/"
+   - port_number: 8082
+  tasks:
+  - name: "create yum repository for docker"
+    yum_repository:
+      name: docker-repo
+      description: "repo for docker"
+      baseurl: "https://download.docker.com/linux/centos/7/x86_64/stable/"
+      enabled: yes
+      gpgcheck: no
+    when: ansible_facts['os_family'] == 'RedHat'
+  
+  - name: "Install docker"
+    package: 
+      name: "docker-ce-18.09.1-3.el7.x86_64"
+      state: present
+
+  - name: "starting docker service"
+    service:
+      name: "docker"
+      state: started
+
+  - name: "Install pip"
+    package: 
+      name: "python3-pip"
+      state: present
+      update_cache: true
+    
+  - name: "Install docker sdk"
+    pip:
+     name: "docker"
+ 
+  - name: "create directory to copy source code"
+    file:
+      path: "{{ansible_facts['user_dir']}}/{{ project_name }}"
+      state: directory
+     
+  - name: "copy {{ project_name }} code"
+    copy:
+      src: "{{ source_code_dir }}"
+      dest:  "{{ansible_facts['user_dir']}}/{{ project_name }}/"
+     
+  - name: "create a httpd docker container for {{ project_name }}"
+    docker_container:
+      name: "{{ project_name }}"
+      image: "httpd"
+      state: started
+      exposed_ports:
+      - "80"
+      published_ports:
+      - "{{ port_number }}:80"            #hostport : container port
+      volumes:
+      - "{{ansible_facts['user_dir']}}/{{ project_name }}:/usr/local/apache2/htdocs/"
+   
+  
