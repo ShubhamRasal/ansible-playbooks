@@ -1,0 +1,10 @@
+
+
+project_name: "creatorsbyheart_dev"
+source_code_path: "/root/shubham_work/ansible_github/ansible-playbooks/webserver/mywebsite"
+webserver_conf_file: "creatorsbyheart.conf.j2"
+port_number: 5000
+
+document_root_location: "/var/www/creatorsbyheart"
+
+

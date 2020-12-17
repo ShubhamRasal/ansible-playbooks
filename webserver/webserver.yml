@@ -1,0 +1,56 @@
+- hosts: webserver
+  vars_files:
+  - vars.yml
+
+  tasks:
+  - name: "Install HTTPD "
+    package:
+       name: "httpd"
+       state: present
+    register: httpd_install
+
+  - name: "Create document root"
+    file:
+      path: "{{ document_root_location }}"
+      state: directory
+    register: create_dir
+    when: httpd_install.failed == false
+      
+  - name: "Copy source code/artifacts "          
+    copy:
+       src: "{{ source_code_path }}"
+       dest: "{{ document_root_location }}"
+    when: create_dir.failed == false
+  
+  - name: "Copy conf file"          
+    template:
+       src: "{{ webserver_conf_file }}"
+       dest: "/etc/httpd/conf.d/{{ project_name }}.conf"
+    register: x
+    when: httpd_install.failed == false and create_dir.failed == false
+    notify: "Restart Httpd"
+  
+  - name: "Restart firewalld"
+    service: 
+         name: "firewalld"
+         state: started
+
+  - name: "Add firewall rule" 
+    firewalld:
+        port: "{{ port_number }}/tcp"
+        permanent: yes
+        state: enabled
+        immediate: yes
+  
+  handlers:
+   - name: "Restart Httpd"
+     service:
+       name: "httpd"
+       state: restarted
+  
+   - name: "Restart firewalld"
+     service: 
+         name: "firewalld"
+         state: restarted
+
+     

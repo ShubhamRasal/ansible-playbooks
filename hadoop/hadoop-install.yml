@@ -1,0 +1,36 @@
+#Install hadoop on namenode and datanodes
+- hosts: 
+  - hadoop_namenode 
+  - hadoop_datanode
+  vars:
+    - user_directory: "{{ ansible_facts['user_dir']}}"
+  tasks:
+  
+  #copy java software
+  - name: "Transfer JDK 8"
+    copy:
+      src: "jdk-8u171-linux-x64.rpm"
+      dest: "{{ user_directory }}/"
+    register: java_copy
+ 
+  #install java software
+  - name: "Install Java"
+    package:
+      name: "jdk-8u171-linux-x64.rpm"
+      state: present
+    register: java_install
+    when: java_copy.failed == false
+   
+  #copy hadoop software
+  - name: "Transfer Hadoop software"
+    copy:
+      src: "hadoop-1.2.1-1.x86_64.rpm"
+      dest: "{{ user_directory }}/"
+    register: hadoop_copy
+    
+  #install hadoop software
+  - name: "Install Hadoop"
+    shell: "rpm -i {{ user_directory }}/hadoop-1.2.1-1.x86_64.rpm --force"
+    when: java_install.failed == false and hadoop_copy.failed == false
+   
+

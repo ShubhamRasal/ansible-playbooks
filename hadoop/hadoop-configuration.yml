@@ -1,0 +1,64 @@
+#configure namenode
+- name: "configure namenode"
+  hosts: hadoop_namenode
+  tags:
+    - "namenode"
+  vars:
+    user_dir: "{{ ansible_facts['user_dir'] }}"
+  vars_files:
+    - vars.yml
+    - namenode/vars.yml
+
+  tasks:  
+  - name: "Create namenode directory"
+    file:
+      path: "{{ user_dir}}{{namenode_directory}}"
+      state: directory
+
+  - name: "copy core-site.xml file"
+    template:
+      src: "namenode/core-site.xml" 
+      dest: "/etc/hadoop/core-site.xml"
+  
+  - name: "copy hdfs-site.xml file"
+    template:
+      src: "namenode/hdfs-site.xml" 
+      dest: "/etc/hadoop/hdfs-site.xml"
+ 
+  - name: "Format Namenode"
+    shell: "echo Y | hadoop namenode -format"
+   
+  - name: "start hadoop namenode"
+    shell: "hadoop-daemon.sh start namenode"
+    ignore_errors: yes
+
+#configure datanode
+- name: "configure datanode"
+  hosts: hadoop_datanode
+  tags:
+    - "datanode"
+  vars:
+  - user_dir: "{{ ansible_facts['user_dir'] }}"
+  vars_files:
+    - vars.yml
+    - datanode/vars.yml
+
+  tasks:  
+  - name: "Create datanode directory"
+    file:
+      path: "{{ user_dir}}{{datanode_directory}}"
+      state: directory
+
+  - name: "copy core-site.xml file"
+    template:
+      src: "datanode/core-site.xml" 
+      dest: "/etc/hadoop/core-site.xml"
+  
+  - name: "copy hdfs-site.xml file"
+    template:
+      src: "datanode/hdfs-site.xml" 
+      dest: "/etc/hadoop/hdfs-site.xml"
+ 
+  - name: "start hadoop datanode"
+    shell: "hadoop-daemon.sh start datanode"
+    
