@@ -1,0 +1,43 @@
+#- hosts: creatorsbyheart_webservers
+  #vars_files:
+  #- vars.yml
+  become: true
+  tasks:
+  - name: "Installation"
+    package:
+       name: "{{ item }}"
+       state: present
+    loop:
+    - "httpd"
+    - "php"
+    register: installation
+
+
+  - name: "Create document root"
+    file:
+      path: "{{ document_root_location }}"
+      state: directory
+    register: create_dir
+    when: installation.msg == "All items completed" 
+ 
+  - name: "Copy source code/artifacts "          
+    copy:
+       src: "{{ source_code_path }}"
+       dest: "{{ document_root_location }}"
+    when: create_dir.failed == false
+  
+  - name: "Copy conf file"          
+    template:
+       src: "{{ webserver_conf_file }}"
+       dest: "/etc/httpd/conf.d/{{ project_name }}.conf"
+    register: x
+    when: installation.msg == "All items completed" and create_dir.failed == false
+    notify: "Restart Httpd"
+  
+ 
+  handlers:
+   - name: "Restart Httpd"
+     service:
+       name: "httpd"
+       state: restarted
+  

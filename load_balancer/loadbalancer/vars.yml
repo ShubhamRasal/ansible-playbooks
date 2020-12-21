@@ -1,0 +1,5 @@
+
+
+ # load balancer variable file
+ 
+load_balancer_port_number: 80

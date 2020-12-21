@@ -1,0 +1,9 @@
+
+project_name: "creatorsbyheart_dev"
+source_code_path: "/root/shubham_work/ansible_github/ansible-playbooks/load_balancer/source_code/"
+webserver_conf_file: "webservers/creatorsbyheart.conf.j2"
+port_number: 5000
+
+document_root_location: "/var/www/creatorsbyheart"
+
+
