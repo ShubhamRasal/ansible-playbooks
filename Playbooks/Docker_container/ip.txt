@@ -1,0 +1,4 @@
+[aws_docker]
+13.232.91.148  ansible_ssh_user=ec2-user
+
+

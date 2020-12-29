@@ -1,0 +1,41 @@
+- hosts: aws_docker
+  become: true  
+  tasks:
+  - name: "copy source code"
+    copy:
+     src: "my_app"
+     dest: "/root"
+
+  - name: "Build docker image from Dockerfile"
+    docker_image:
+       name:  "ubuntu_with_ssh"
+       build:
+         pull: yes
+         path: "/root/my_app"
+       state: present
+       source: build
+  
+  - name: "launch container"
+    docker_container:
+       docker_host: "{{ inventory_hostname }}:4243"
+       name: "MyOS"
+       image: "ubuntu_with_ssh:latest"
+       state: started
+       ports:
+       - "2222:22"
+       volumes:
+       - "/root/.ssh:/root/.ssh/"
+
+
+  - name: "add container to inventory"
+    add_host:
+       name: "container"
+       ansible_connection: docker
+       ansible_docker_extra_args: "--tlsverify --tlscacert=/root/Desktop/arth-key.pem --tlscert=/root/Desktop/arth-key.pem --tlskey=/root/Desktop/arth-key.pem -H=tcp://{{inventory_hostname}}:4243"
+       ansible_user: docker
+       ansible_pass: docker
+
+  - name: create directory for ssh keys
+    delegate_to: container
+    command: "cat /etc/os-release"
+    become: yes

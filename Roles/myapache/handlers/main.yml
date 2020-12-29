@@ -1,0 +1,22 @@
+---
+# handlers file for myapache
+
+- name: "Restart Httpd"
+  service:
+      name: "httpd"
+      state: restarted
+
+- name: "Restart apache2"
+  service:
+      name: "apache2"
+      state: restarted
+  
+- name: Reload Apache
+  service:
+    name: apache2
+    state: reloaded
+
+- name: "Restart firewalld"
+  service: 
+      name: "firewalld"
+      state: restarted

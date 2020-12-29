@@ -1,0 +1,12 @@
+---
+# tasks file for myapache
+# myapache/tasks/main.yml
+
+- name: "Run for RedHat"
+  include_tasks: "RedHat.yml"
+  when: ansible_os_family == "RedHat"
+
+- name: "Run for Debian"
+  include_tasks: "Debian.yml"
+  when: ansible_os_family == "Debian"
+

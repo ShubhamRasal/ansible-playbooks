@@ -1,0 +1,12 @@
+FROM httpd_ssh:latest
+
+RUN useradd -rm -d /home/docker_user -s /bin/bash -g root -G sudo -u 1002 docker_user
+
+RUN echo 'docker_user:docker_user' | chpasswd
+
+RUN service ssh start
+
+EXPOSE 22
+
+CMD ["/usr/sbin/sshd","-D"]
+

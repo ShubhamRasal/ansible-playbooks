@@ -1,21 +1,25 @@
-- hosts: webserver
+- hosts: creatorsbyheart_webservers
   vars_files:
   - vars.yml
-
+  become: true
   tasks:
-  - name: "Install HTTPD "
+  - name: "Installation"
     package:
-       name: "httpd"
+       name: "{{ item }}"
        state: present
-    register: httpd_install
+    loop:
+    - "httpd"
+    - "php"
+    register: installation
+
 
   - name: "Create document root"
     file:
       path: "{{ document_root_location }}"
       state: directory
     register: create_dir
-    when: httpd_install.failed == false
-      
+    when: installation.msg == "All items completed" 
+ 
   - name: "Copy source code/artifacts "          
     copy:
        src: "{{ source_code_path }}"
@@ -27,30 +31,13 @@
        src: "{{ webserver_conf_file }}"
        dest: "/etc/httpd/conf.d/{{ project_name }}.conf"
     register: x
-    when: httpd_install.failed == false and create_dir.failed == false
+    when: installation.msg == "All items completed" and create_dir.failed == false
     notify: "Restart Httpd"
   
-  - name: "Restart firewalld"
-    service: 
-         name: "firewalld"
-         state: started
-
-  - name: "Add firewall rule" 
-    firewalld:
-        port: "{{ port_number }}/tcp"
-        permanent: yes
-        state: enabled
-        immediate: yes
-  
+ 
   handlers:
    - name: "Restart Httpd"
      service:
        name: "httpd"
        state: restarted
   
-   - name: "Restart firewalld"
-     service: 
-         name: "firewalld"
-         state: restarted
-
-     

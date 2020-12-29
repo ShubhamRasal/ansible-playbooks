@@ -1,0 +1,44 @@
+---
+# tasks file for Redhat
+- name: "Install RedHat packages"
+  package: 
+      name: "{{ item }}"
+      state: present
+  loop:  
+  - "{{ ap_extra_software }}" 
+  - "httpd"
+ 
+- name: "Create document root"
+  file:
+      path: "/var/www/{{ ap_http_host_dir }}"
+      state: directory
+
+- name: "Copy source code/artifacts "          
+  copy:
+       src: "{{ap_source_code_location}}"
+       dest: "/var/www/{{ ap_http_host_dir }}"
+
+- name: "Copy conf file"          
+  template:
+      src: "webserver.conf.j2"
+      dest: "/etc/httpd/conf.d/{{ ap_http_conf_file }}"
+  notify: "Restart Httpd"
+  
+- name: Enable Httpd
+  service:
+    name: "httpd"
+    enabled: yes
+
+- name: start Httpd
+  service:
+    name: "httpd"
+    state: started
+  
+- name: "Add firewall rule" 
+  firewalld:
+      port: "{{ ap_http_port }}/tcp"
+      permanent: yes
+      state: enabled
+      immediate: yes
+  notify: "Restart firewalld"
+  ignore_errors: True

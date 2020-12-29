@@ -1,0 +1,46 @@
+
+- name: "Install packages"
+  apt: 
+      name: "{{ item }}"
+      state: present
+      update_cache: yes
+  loop:  
+  - "apache2"
+  - "{{ ap_extra_software }}"     
+
+- name: "Create document root"
+  file:
+      path: "/var/www/{{ ap_http_host_dir }}"
+      state: directory
+      mode: '0755'
+
+- name: "Copy source code/artifacts "          
+  copy:
+       src: "{{ap_source_code_location}}"
+       dest: "/var/www/{{ ap_http_host_dir }}"
+
+- name: "Set Up Apache VirtualHost"          
+  template:
+      src: "webserver.conf.j2"
+      dest: "/etc/apache2/sites-available/{{ ap_http_conf_file }}"
+
+- name: Enable new site
+  shell: /usr/sbin/a2ensite {{ ap_http_conf_file }}
+  notify: Reload Apache
+
+- name: Disable default Apache site
+  shell: /usr/sbin/a2dissite 000-default.conf
+  when: ap_disable_default
+  notify: Reload Apache
+
+- name: "UFW - Allow HTTP on port {{ ap_http_port }}"
+  ufw:
+    rule: allow
+    port: "{{ ap_http_port }}"
+    proto: tcp
+
+- name: Enable Httpd
+  service:
+    name: "apache2"
+    enabled: yes
+
