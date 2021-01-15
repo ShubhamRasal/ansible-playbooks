@@ -1,0 +1,11 @@
+---
+# defaults file for haproxy
+
+# load balancer port number
+lb_port_number: "5000"
+
+# inventory group which you want to register as backends servers
+lb_inventory_group: backend
+
+# load balancer backend servers port number
+lb_backend_port_number: "8000"
