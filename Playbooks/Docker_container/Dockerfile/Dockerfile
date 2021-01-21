@@ -5,25 +5,13 @@ ARG USERNAME=docker
 ARG USERPASS=docker
 EXPOSE 22
 # Apt update & apt install required packages
-# whois: required for mkpasswd
 RUN apt update && apt -y install openssh-server whois sudo
 
 # Add a non-root user & set password
 RUN useradd -ms /bin/bash $USERNAME
-# Save username on a file ¿?¿?¿?¿?¿?
-#RUN echo "$USERNAME" > /.non-root-username
-
-# Set password for non-root user
-#RUN usermod --password $(echo "$USERPASS" | mkpasswd -s) $USERNAME
-#RUN adduser $USERNAME sudo
-
 
 # Remove no-needed packages
 RUN apt purge -y whois && apt -y autoremove && apt -y autoclean && apt -y clean
-
-# Change to non-root user
-#USER $USERNAME
-#WORKDIR /home/$USERNAME
 
 # Copy the entrypoint
 COPY entrypoint.sh entrypoint.sh
@@ -38,11 +26,6 @@ USER root
 RUN chown $USERNAME /home/$USERNAME/.ssh/authorized_keys && \
     chmod 600 /home/$USERNAME/.ssh/authorized_keys
 RUN echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL " >> /etc/sudoers
-
-
-# # Set volumes
-# VOLUME /home/$USERNAME/.ssh
-# VOLUME /etc/ssh
 
 # Run entrypoint
 CMD ["/entrypoint.sh"]
