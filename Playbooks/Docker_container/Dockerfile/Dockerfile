@@ -2,8 +2,8 @@ FROM ubuntu:latest
 
 # Env & Arg variables
 ARG USERNAME=docker
-#ARG USERPASS=docker
-
+ARG USERPASS=docker
+EXPOSE 22
 # Apt update & apt install required packages
 # whois: required for mkpasswd
 RUN apt update && apt -y install openssh-server whois sudo
@@ -15,7 +15,8 @@ RUN useradd -ms /bin/bash $USERNAME
 
 # Set password for non-root user
 #RUN usermod --password $(echo "$USERPASS" | mkpasswd -s) $USERNAME
-RUN adduser $USERNAME sudo
+#RUN adduser $USERNAME sudo
+
 
 # Remove no-needed packages
 RUN apt purge -y whois && apt -y autoremove && apt -y autoclean && apt -y clean
@@ -30,12 +31,18 @@ RUN chmod +x /entrypoint.sh
 
 # Create the ssh directory and authorized_keys file
 USER $USERNAME
-RUN mkdir /home/$USERNAME/.ssh && touch /home/$USERNAME/.ssh/authorized_keys
-USER root
+RUN mkdir /home/$USERNAME/.ssh
+COPY mycontainerkey.pub /home/$USERNAME/.ssh/authorized_keys
 
-# Set volumes
-VOLUME /home/$USERNAME/.ssh
-VOLUME /etc/ssh
+USER root
+RUN chown $USERNAME /home/$USERNAME/.ssh/authorized_keys && \
+    chmod 600 /home/$USERNAME/.ssh/authorized_keys
+RUN echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL " >> /etc/sudoers
+
+
+# # Set volumes
+# VOLUME /home/$USERNAME/.ssh
+# VOLUME /etc/ssh
 
 # Run entrypoint
 CMD ["/entrypoint.sh"]

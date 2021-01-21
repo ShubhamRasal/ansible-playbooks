@@ -1,41 +1,54 @@
-- hosts: aws_docker
+- hosts: localhost
   become: true  
+  vars:
+  - dockerfile_folder: "Dockerfile"
+  - docker_image_name: "ssh_os:1"
+  - docker_container_name: "test_os"
+  - patting_ssh_port: "2222"
+  - patting_http_port: "80"
   tasks:
-  - name: "copy source code"
+  - name: "Copy Docker file"
     copy:
-     src: "my_app"
-     dest: "/root"
+     src: "{{dockerfile_folder}}"
+     dest: "/srv/"
 
   - name: "Build docker image from Dockerfile"
     docker_image:
-       name:  "ubuntu_with_ssh"
+       name:  "{{docker_image_name}}"
        build:
          pull: yes
-         path: "/root/my_app"
+         path: "/srv/{{dockerfile_folder}}/"
        state: present
        source: build
   
-  - name: "launch container"
+  - name: "launch docker container"
     docker_container:
-       docker_host: "{{ inventory_hostname }}:4243"
-       name: "MyOS"
-       image: "ubuntu_with_ssh:latest"
+       name: "{{docker_container_name}}"
+       image: "{{docker_image_name}}"
        state: started
        ports:
-       - "2222:22"
-       volumes:
-       - "/root/.ssh:/root/.ssh/"
+       - "{{patting_ssh_port}}:22"
+       -  "{{patting_http_port}}:8080"
+    register: docker_info
 
 
-  - name: "add container to inventory"
-    add_host:
-       name: "container"
-       ansible_connection: docker
-       ansible_docker_extra_args: "--tlsverify --tlscacert=/root/Desktop/arth-key.pem --tlscert=/root/Desktop/arth-key.pem --tlskey=/root/Desktop/arth-key.pem -H=tcp://{{inventory_hostname}}:4243"
-       ansible_user: docker
-       ansible_pass: docker
+  - name: "Update inventory file"
+    lineinfile:
+      path: hosts
+      insertafter: '^\[containers]'
+      firstmatch: yes
+      line: "{{docker_info.ansible_facts.docker_container.NetworkSettings.IPAddress}}"
+      state: present
 
-  - name: create directory for ssh keys
-    delegate_to: container
-    command: "cat /etc/os-release"
-    become: yes
+# # play to wirte entry in ansible inventory
+# - name: "Update inventory file"
+#   hosts: localhost
+#   tags: inventory
+#   tasks:
+#   - command: cat hosts
+#     register: inventory_data
+#   - debug:
+#        var: groups.docker_host
+#   - shell: echo "{{ item }} ansible_ssh_user=docker ansible_ssh_port=5555" >> ./hosts
+#     when:  "'{{ item }} ansible_ssh_user=docker ansible_ssh_port=5555' not in inventory_data.stdout"
+#     loop: "{{groups.docker_host}}"

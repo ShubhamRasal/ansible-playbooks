@@ -1,10 +1,9 @@
-- hosts: docker
-  vars:
-   - project_name: "dev-creatorsbyheart"  
-   - source_code_dir: "creatorsbyheart"
-   - port_number: 8081
+- hosts: localhost
   become: true
   tasks:
+  - debug:
+      var: ansible_os_family
+      
   - name: "create yum repository for docker"
     yum_repository:
       name: docker-repo
@@ -29,14 +28,14 @@
     pip:
      name: "docker"
  
-  - name: "Update docker service"
-    replace:
-       path: "/lib/systemd/system/docker.service"
-       regexp: "^ExecStart.*"
-       replace: "ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:4243"
-    notify: 
-    - "Restart docker"
-    - "Reload deamon"
+  # - name: "Update docker service"
+  #   replace:
+  #      path: "/lib/systemd/system/docker.service"
+  #      regexp: "^ExecStart.*"
+  #      replace: "ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:4243"
+  #   notify: 
+  #   - "Restart docker"
+  #   - "Reload deamon"
   
   - name: "Start docker service"
     service:
@@ -44,13 +43,13 @@
       state: started
 
 
-  handlers:
-  - name: "Restart docker"
-    service:
-       name: "docker"
-       state: restarted
+  # handlers:
+  # - name: "Restart docker"
+  #   service:
+  #      name: "docker"
+  #      state: restarted
 
-  - name: "Reload deamon"
-    systemd:
-       daemon_reload: yes
+  # - name: "Reload deamon"
+  #   systemd:
+  #      daemon_reload: yes
 

@@ -1,0 +1,23 @@
+- hosts: containers
+  vars:
+  - source_code: "./MyProject"
+  tasks:
+  - name: "copy source code"
+    copy: 
+        src: "{{ source_code }}"
+        dest: "/srv/"     
+ 
+  - name: "Install pip"
+    package: 
+      name: "python3-pip"
+      state: present
+      update_cache: true
+  
+  - name: "Install specified python requirements"
+    pip: 
+      requirements: /srv/{{ source_code }}/requirements.txt  
+
+  - name: "start python app"
+    shell: "( cd /srv/{{source_code}}/ ; python3 app.py  >/dev/null 2>&1 &)"
+    async: 10
+    poll: 0

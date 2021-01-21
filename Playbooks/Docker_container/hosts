@@ -1,0 +1,12 @@
+[dockerhost]
+docker-host  ansible_ssh_user=ec2-user
+
+[containers]
+172.17.0.2
+
+
+
+
+[containers:vars]
+ansible_ssh_user=docker
+ansible_ssh_private_key_file=mycontainerkey

@@ -1,7 +1,0 @@
-- hosts: 
-  - docker
-  tasks:
-  - name: "debug"
-    debug:
-            msg: "Hii {{ inventory_hostname }} "
- 
